@@ -20,9 +20,6 @@
     "leaflet-geosearch": "^4.2.2",
     "lucide-react": "^0.563.0",
     "mapbox-gl": "^2.15.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-icons": "^4.12.0",
     "react-leaflet": "^5.0.0",
     "react-map-gl": "^7.1.7",
     "react-router-dom": "^6.20.0"
