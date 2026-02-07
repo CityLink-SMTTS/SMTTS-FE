@@ -50,3 +50,12 @@ html, body, #root {
 .animate-slideIn {
   animation: slideIn 0.3s ease-in-out;
 }
+/* Basic reset or global styles if needed, otherwise leave empty or minimal */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
