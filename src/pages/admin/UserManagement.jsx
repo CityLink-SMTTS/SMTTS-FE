@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { mockUsers } from '../../utils/mockData';
+import { useNotification } from '../../contexts/NotificationContext';
 
 const UserManagement = () => {
+  const { notify, confirm } = useNotification();
   const [users, setUsers] = useState(mockUsers);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState('All');
@@ -18,7 +20,7 @@ const UserManagement = () => {
   // Filter users based on search and filters
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = filterRole === 'All' || user.role === filterRole;
     const matchesStatus = filterStatus === 'All' || user.status === filterStatus;
     return matchesSearch && matchesRole && matchesStatus;
@@ -41,18 +43,34 @@ const UserManagement = () => {
     setUsers([...users, user]);
     setShowAddModal(false);
     setNewUser({ name: '', email: '', role: 'Commuter', status: 'Active' });
+    notify.success(`User "${newUser.name}" has been added successfully`, 'User Added');
   };
 
-  const handleDeleteUser = (id) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+  const handleDeleteUser = async (id) => {
+    const user = users.find(u => u.id === id);
+    const confirmed = await confirm(
+      `Are you sure you want to delete "${user.name}"? This action cannot be undone.`,
+      'Delete User'
+    );
+
+    if (confirmed) {
       setUsers(users.filter(u => u.id !== id));
+      notify.success(`User "${user.name}" has been deleted`, 'User Deleted');
     }
   };
 
   const handleToggleStatus = (id) => {
-    setUsers(users.map(u => 
-      u.id === id ? { ...u, status: u.status === 'Active' ? 'Inactive' : 'Active' } : u
+    const user = users.find(u => u.id === id);
+    const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
+
+    setUsers(users.map(u =>
+      u.id === id ? { ...u, status: newStatus } : u
     ));
+
+    notify.info(
+      `User "${user.name}" status changed to ${newStatus}`,
+      'Status Updated'
+    );
   };
 
   return (
@@ -145,11 +163,10 @@ const UserManagement = () => {
                 <tr key={user.id} className="hover:bg-gray-50 transition">
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${
-                        user.role === 'Admin' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
-                        user.role === 'Driver' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
-                        'bg-gradient-to-r from-green-500 to-emerald-500'
-                      }`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${user.role === 'Admin' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
+                          user.role === 'Driver' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                            'bg-gradient-to-r from-green-500 to-emerald-500'
+                        }`}>
                         {user.name.charAt(0)}
                       </div>
                       <div>
@@ -159,11 +176,10 @@ const UserManagement = () => {
                     </div>
                   </td>
                   <td className="py-4 px-6">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.role === 'Admin' ? 'bg-purple-100 text-purple-800' :
-                      user.role === 'Driver' ? 'bg-blue-100 text-blue-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === 'Admin' ? 'bg-purple-100 text-purple-800' :
+                        user.role === 'Driver' ? 'bg-blue-100 text-blue-800' :
+                          'bg-green-100 text-green-800'
+                      }`}>
                       {user.role === 'Admin' && '👑 '}
                       {user.role === 'Driver' && '🚗 '}
                       {user.role === 'Commuter' && '🎫 '}
@@ -173,43 +189,40 @@ const UserManagement = () => {
                   <td className="py-4 px-6">
                     <button
                       onClick={() => handleToggleStatus(user.id)}
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-pointer transition ${
-                        user.status === 'Active' 
-                          ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-pointer transition ${user.status === 'Active'
+                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
                           : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                      }`}
+                        }`}
                     >
-                      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                        user.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'
-                      }`}></span>
+                      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${user.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'
+                        }`}></span>
                       {user.status}
                     </button>
                   </td>
                   <td className="py-4 px-6 text-sm text-gray-600">{user.joinDate}</td>
                   <td className="py-4 px-6">
-                    <span className={`text-sm ${
-                      user.lastActive === 'Online' ? 'text-green-600 font-medium' : 'text-gray-500'
-                    }`}>
+                    <span className={`text-sm ${user.lastActive === 'Online' ? 'text-green-600 font-medium' : 'text-gray-500'
+                      }`}>
                       {user.lastActive === 'Online' && '🟢 '}
                       {user.lastActive}
                     </span>
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center justify-end space-x-2">
-                      <button 
+                      <button
                         onClick={() => setSelectedUser(user)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-500 hover:text-blue-600"
                         title="View Details"
                       >
                         👁️
                       </button>
-                      <button 
+                      <button
                         className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-500 hover:text-green-600"
                         title="Edit User"
                       >
                         ✏️
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeleteUser(user.id)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-500 hover:text-red-600"
                         title="Delete User"
@@ -248,7 +261,7 @@ const UserManagement = () => {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-lg font-semibold text-gray-800">Add New User</h3>
-              <button 
+              <button
                 onClick={() => setShowAddModal(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -327,7 +340,7 @@ const UserManagement = () => {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-lg font-semibold text-gray-800">User Details</h3>
-              <button 
+              <button
                 onClick={() => setSelectedUser(null)}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -336,11 +349,10 @@ const UserManagement = () => {
             </div>
             <div className="p-6">
               <div className="flex items-center space-x-4 mb-6">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold ${
-                  selectedUser.role === 'Admin' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
-                  selectedUser.role === 'Driver' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
-                  'bg-gradient-to-r from-green-500 to-emerald-500'
-                }`}>
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold ${selectedUser.role === 'Admin' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
+                    selectedUser.role === 'Driver' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                      'bg-gradient-to-r from-green-500 to-emerald-500'
+                  }`}>
                   {selectedUser.name.charAt(0)}
                 </div>
                 <div>
@@ -358,7 +370,7 @@ const UserManagement = () => {
                 <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                   Edit User
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     handleDeleteUser(selectedUser.id);
                     setSelectedUser(null);

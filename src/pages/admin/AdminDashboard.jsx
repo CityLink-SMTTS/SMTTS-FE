@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  mockSystemStats, 
-  mockSystemHealth, 
-  mockRevenueData, 
+import {
+  mockSystemStats,
+  mockSystemHealth,
+  mockRevenueData,
   mockRecentActivities,
-  mockPerformanceData 
+  mockPerformanceData
 } from '../../utils/mockData';
 
 const AdminDashboard = () => {
@@ -19,8 +19,8 @@ const AdminDashboard = () => {
   }, []);
 
   const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
   };
 
@@ -30,17 +30,17 @@ const AdminDashboard = () => {
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8">
         <div>
           <div className="flex items-center space-x-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-grad-primary flex items-center justify-center shadow-lg">
               <span className="text-white font-bold text-lg">S</span>
             </div>
-            <h1 className="text-3xl font-bold text-slate-800">Admin Dashboard</h1>
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-grad-primary">Admin Dashboard</h1>
           </div>
           <p className="text-slate-500">{formatDate(currentTime)} • Smart Multi-Modal Transportation System</p>
         </div>
         <div className="mt-4 md:mt-0 flex space-x-3">
-          <Link 
-            to="/admin/fleet" 
-            className="px-5 py-2.5 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-xl hover:opacity-90 transition flex items-center space-x-2 shadow-lg shadow-teal-500/20"
+          <Link
+            to="/admin/fleet"
+            className="px-5 py-2.5 bg-grad-eco text-white rounded-xl hover:opacity-90 transition flex items-center space-x-2 shadow-lg shadow-teal-500/20"
           >
             <span>🚌</span>
             <span>Fleet Management</span>
@@ -56,7 +56,7 @@ const AdminDashboard = () => {
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
               <span className="text-slate-500 font-medium">Total Trips</span>
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-grad-tech flex items-center justify-center shadow-lg">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                 </svg>
@@ -76,7 +76,7 @@ const AdminDashboard = () => {
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
               <span className="text-slate-500 font-medium">Revenue Summary</span>
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-grad-gold flex items-center justify-center shadow-lg">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -96,7 +96,7 @@ const AdminDashboard = () => {
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
               <span className="text-slate-500 font-medium">Active Users</span>
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-grad-eco flex items-center justify-center shadow-lg">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -140,14 +140,12 @@ const AdminDashboard = () => {
                 <div key={index} className="bg-white rounded-lg p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        server.status === 'Online' ? 'bg-green-500' : 'bg-yellow-500'
-                      }`}></div>
+                      <div className={`w-3 h-3 rounded-full ${server.status === 'Online' ? 'bg-green-500' : 'bg-yellow-500'
+                        }`}></div>
                       <span className="font-medium text-slate-700">{server.name}</span>
                     </div>
-                    <span className={`text-sm font-medium ${
-                      server.status === 'Online' ? 'text-green-600' : 'text-yellow-600'
-                    }`}>{server.status}</span>
+                    <span className={`text-sm font-medium ${server.status === 'Online' ? 'text-green-600' : 'text-yellow-600'
+                      }`}>{server.status}</span>
                   </div>
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
@@ -158,10 +156,9 @@ const AdminDashboard = () => {
                       <span className="text-slate-400">CPU</span>
                       <div className="flex items-center space-x-2">
                         <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full ${
-                              server.cpu > 70 ? 'bg-red-500' : server.cpu > 50 ? 'bg-yellow-500' : 'bg-green-500'
-                            }`}
+                          <div
+                            className={`h-full rounded-full ${server.cpu > 70 ? 'bg-red-500' : server.cpu > 50 ? 'bg-yellow-500' : 'bg-green-500'
+                              }`}
                             style={{ width: `${server.cpu}%` }}
                           ></div>
                         </div>
@@ -172,10 +169,9 @@ const AdminDashboard = () => {
                       <span className="text-slate-400">Memory</span>
                       <div className="flex items-center space-x-2">
                         <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full ${
-                              server.memory > 70 ? 'bg-red-500' : server.memory > 50 ? 'bg-yellow-500' : 'bg-green-500'
-                            }`}
+                          <div
+                            className={`h-full rounded-full ${server.memory > 70 ? 'bg-red-500' : server.memory > 50 ? 'bg-yellow-500' : 'bg-green-500'
+                              }`}
                             style={{ width: `${server.memory}%` }}
                           ></div>
                         </div>
@@ -195,17 +191,15 @@ const AdminDashboard = () => {
               {systemHealth.services.map((service, index) => (
                 <div key={index} className="bg-white rounded-lg p-4 shadow-sm">
                   <div className="flex items-center space-x-2 mb-2">
-                    <div className={`w-2 h-2 rounded-full ${
-                      service.status === 'Operational' ? 'bg-green-500' : 'bg-red-500'
-                    }`}></div>
+                    <div className={`w-2 h-2 rounded-full ${service.status === 'Operational' ? 'bg-green-500' : 'bg-red-500'
+                      }`}></div>
                     <span className="font-medium text-slate-700 text-sm">{service.name}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      service.status === 'Operational' 
-                        ? 'bg-green-100 text-green-700' 
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${service.status === 'Operational'
+                        ? 'bg-green-100 text-green-700'
                         : 'bg-red-100 text-red-700'
-                    }`}>{service.status}</span>
+                      }`}>{service.status}</span>
                     <span className="text-xs text-slate-500">{service.latency}</span>
                   </div>
                 </div>
@@ -266,11 +260,10 @@ const AdminDashboard = () => {
             {mockPerformanceData.map((data, index) => (
               <div key={index} className="flex flex-col items-center flex-1">
                 <div
-                  className={`w-full rounded-t-md transition-all duration-500 ${
-                    data.load > 80 ? 'bg-gradient-to-t from-red-600 to-red-400' : 
-                    data.load > 60 ? 'bg-gradient-to-t from-yellow-500 to-yellow-400' : 
-                    'bg-gradient-to-t from-green-600 to-green-400'
-                  }`}
+                  className={`w-full rounded-t-md transition-all duration-500 ${data.load > 80 ? 'bg-gradient-to-t from-red-600 to-red-400' :
+                      data.load > 60 ? 'bg-gradient-to-t from-yellow-500 to-yellow-400' :
+                        'bg-gradient-to-t from-green-600 to-green-400'
+                    }`}
                   style={{ height: `${data.load}%` }}
                 ></div>
                 <span className="text-xs text-slate-500 mt-2">{data.time}</span>
@@ -330,10 +323,9 @@ const AdminDashboard = () => {
           <div className="space-y-3">
             {mockRecentActivities.map((activity) => (
               <div key={activity.id} className="flex items-start space-x-3 p-3 hover:bg-slate-50 rounded-xl transition">
-                <div className={`w-2 h-2 rounded-full mt-2 ${
-                  activity.severity === 'warning' ? 'bg-amber-500' :
-                  activity.severity === 'success' ? 'bg-green-500' : 'bg-cyan-500'
-                }`}></div>
+                <div className={`w-2 h-2 rounded-full mt-2 ${activity.severity === 'warning' ? 'bg-amber-500' :
+                    activity.severity === 'success' ? 'bg-green-500' : 'bg-cyan-500'
+                  }`}></div>
                 <div className="flex-1">
                   <p className="text-sm text-slate-700">{activity.message}</p>
                   <p className="text-xs text-slate-400 mt-1">{activity.time}</p>

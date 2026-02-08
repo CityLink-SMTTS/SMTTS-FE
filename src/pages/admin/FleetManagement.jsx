@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { mockVehicles, mockRoutes, mockSchedules } from '../../utils/mockData';
+import { useNotification } from '../../contexts/NotificationContext';
 
 const FleetManagement = () => {
+  const { notify, confirm } = useNotification();
   const [vehicles, setVehicles] = useState(mockVehicles);
   const [routes, setRoutes] = useState(mockRoutes);
   const [schedules, setSchedules] = useState(mockSchedules);
@@ -67,7 +69,7 @@ const FleetManagement = () => {
     const matchesType = filterType === 'All' || v.type === filterType;
     const matchesStatus = filterStatus === 'All' || v.status === filterStatus;
     const matchesSearch = v.vehicleNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          v.licensePlate.toLowerCase().includes(searchQuery.toLowerCase());
+      v.licensePlate.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesType && matchesStatus && matchesSearch;
   });
 
@@ -89,34 +91,44 @@ const FleetManagement = () => {
     setVehicles([...vehicles, vehicle]);
     setShowAddModal(false);
     resetNewVehicle();
+    notify.success(`Vehicle ${newVehicle.vehicleNumber} has been added successfully`, 'Vehicle Added');
   };
 
   const handleEditVehicle = (e) => {
     e.preventDefault();
     setVehicles(vehicles.map(v => v.id === selectedVehicle.id ? selectedVehicle : v));
     setShowEditModal(false);
+    notify.success(`Vehicle ${selectedVehicle.vehicleNumber} has been updated`, 'Vehicle Updated');
     setSelectedVehicle(null);
   };
 
-  const handleDeleteVehicle = (id) => {
-    if (window.confirm('Are you sure you want to delete this vehicle?')) {
+  const handleDeleteVehicle = async (id) => {
+    const vehicle = vehicles.find(v => v.id === id);
+    const confirmed = await confirm(
+      `Are you sure you want to delete vehicle ${vehicle.vehicleNumber}? This action cannot be undone.`,
+      'Delete Vehicle'
+    );
+
+    if (confirmed) {
       setVehicles(vehicles.filter(v => v.id !== id));
+      notify.success(`Vehicle ${vehicle.vehicleNumber} has been deleted`, 'Vehicle Deleted');
     }
   };
 
   const handleAssignVehicle = () => {
     if (selectedVehicle && selectedRoute) {
       // Update vehicle with new route
-      setVehicles(vehicles.map(v => 
+      setVehicles(vehicles.map(v =>
         v.id === selectedVehicle.id ? { ...v, route: selectedRoute.id, status: 'Active' } : v
       ));
       // Update route with assigned vehicle
-      setRoutes(routes.map(r => 
-        r.id === selectedRoute.id 
+      setRoutes(routes.map(r =>
+        r.id === selectedRoute.id
           ? { ...r, assignedVehicles: [...(r.assignedVehicles || []), selectedVehicle.vehicleNumber] }
           : r
       ));
       setShowAssignModal(false);
+      notify.success(`Vehicle ${selectedVehicle.vehicleNumber} assigned to route ${selectedRoute.name}`, 'Assignment Successful');
       setSelectedVehicle(null);
       setSelectedRoute(null);
     }
@@ -146,20 +158,29 @@ const FleetManagement = () => {
     setRoutes([...routes, route]);
     setShowAddRouteModal(false);
     resetNewRoute();
+    notify.success(`Route "${newRoute.name}" has been created`, 'Route Added');
   };
 
   const handleEditRoute = (e) => {
     e.preventDefault();
     setRoutes(routes.map(r => r.id === selectedRoute.id ? selectedRoute : r));
     setShowEditRouteModal(false);
+    notify.success(`Route "${selectedRoute.name}" has been updated`, 'Route Updated');
     setSelectedRoute(null);
   };
 
-  const handleDeleteRoute = (id) => {
-    if (window.confirm('Are you sure you want to delete this route?')) {
+  const handleDeleteRoute = async (id) => {
+    const route = routes.find(r => r.id === id);
+    const confirmed = await confirm(
+      `Are you sure you want to delete route "${route.name}"? All associated schedules will also be deleted.`,
+      'Delete Route'
+    );
+
+    if (confirmed) {
       setRoutes(routes.filter(r => r.id !== id));
       // Also remove schedules for this route
       setSchedules(schedules.filter(s => s.routeId !== id));
+      notify.success(`Route "${route.name}" and its schedules have been deleted`, 'Route Deleted');
     }
   };
 
@@ -190,12 +211,14 @@ const FleetManagement = () => {
     setSchedules([...schedules, schedule]);
     setShowAddScheduleModal(false);
     resetNewSchedule();
+    notify.success(`Schedule for ${selectedRouteData?.name} has been created`, 'Schedule Added');
   };
 
   const handleEditSchedule = (e) => {
     e.preventDefault();
     setSchedules(schedules.map(s => s.id === selectedSchedule.id ? selectedSchedule : s));
     setShowEditScheduleModal(false);
+    notify.success(`Schedule has been updated`, 'Schedule Updated');
     setSelectedSchedule(null);
   };
 
@@ -223,13 +246,13 @@ const FleetManagement = () => {
   // Filter schedules
   const filteredSchedules = schedules.filter(s => {
     const matchesSearch = s.routeName.toLowerCase().includes(scheduleSearchQuery.toLowerCase()) ||
-                          s.vehicleNumber.toLowerCase().includes(scheduleSearchQuery.toLowerCase()) ||
-                          s.id.toLowerCase().includes(scheduleSearchQuery.toLowerCase());
+      s.vehicleNumber.toLowerCase().includes(scheduleSearchQuery.toLowerCase()) ||
+      s.id.toLowerCase().includes(scheduleSearchQuery.toLowerCase());
     return matchesSearch;
   });
 
   const getVehicleIcon = (type) => {
-    switch(type) {
+    switch (type) {
       case 'Bus': return '🚌';
       case 'Train': return '🚆';
       case 'Taxi': return '🚕';
@@ -238,7 +261,7 @@ const FleetManagement = () => {
   };
 
   const getTypeGradient = (type) => {
-    switch(type) {
+    switch (type) {
       case 'Bus': return 'from-teal-500 to-emerald-500';
       case 'Train': return 'from-cyan-500 to-blue-500';
       case 'Taxi': return 'from-amber-500 to-orange-500';
@@ -275,31 +298,28 @@ const FleetManagement = () => {
       <div className="flex space-x-4 mb-6">
         <button
           onClick={() => setActiveTab('vehicles')}
-          className={`px-6 py-3 rounded-xl font-medium transition ${
-            activeTab === 'vehicles'
+          className={`px-6 py-3 rounded-xl font-medium transition ${activeTab === 'vehicles'
               ? 'bg-white text-slate-800 shadow-lg'
               : 'bg-transparent text-slate-500 hover:bg-white/50'
-          }`}
+            }`}
         >
           🚌 Vehicles
         </button>
         <button
           onClick={() => setActiveTab('routes')}
-          className={`px-6 py-3 rounded-xl font-medium transition ${
-            activeTab === 'routes'
+          className={`px-6 py-3 rounded-xl font-medium transition ${activeTab === 'routes'
               ? 'bg-white text-slate-800 shadow-lg'
               : 'bg-transparent text-slate-500 hover:bg-white/50'
-          }`}
+            }`}
         >
           🛣️ Routes
         </button>
         <button
           onClick={() => setActiveTab('schedules')}
-          className={`px-6 py-3 rounded-xl font-medium transition ${
-            activeTab === 'schedules'
+          className={`px-6 py-3 rounded-xl font-medium transition ${activeTab === 'schedules'
               ? 'bg-white text-slate-800 shadow-lg'
               : 'bg-transparent text-slate-500 hover:bg-white/50'
-          }`}
+            }`}
         >
           📅 Schedules
         </button>
@@ -380,16 +400,14 @@ const FleetManagement = () => {
                       </span>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                        vehicle.status === 'Active' ? 'bg-green-100 text-green-700' :
-                        vehicle.status === 'Maintenance' ? 'bg-red-100 text-red-700' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                          vehicle.status === 'Active' ? 'bg-green-500' :
-                          vehicle.status === 'Maintenance' ? 'bg-red-500' :
-                          'bg-yellow-500'
-                        }`}></span>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${vehicle.status === 'Active' ? 'bg-green-100 text-green-700' :
+                          vehicle.status === 'Maintenance' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                        }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${vehicle.status === 'Active' ? 'bg-green-500' :
+                            vehicle.status === 'Maintenance' ? 'bg-red-500' :
+                              'bg-yellow-500'
+                          }`}></span>
                         {vehicle.status}
                       </span>
                     </td>
@@ -400,7 +418,7 @@ const FleetManagement = () => {
                       <div className="flex items-center space-x-2">
                         <span className="text-sm text-slate-600">{vehicle.currentPassengers}/{vehicle.capacity}</span>
                         <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
-                          <div 
+                          <div
                             className="h-full bg-teal-500 rounded-full"
                             style={{ width: `${(vehicle.currentPassengers / vehicle.capacity) * 100}%` }}
                           ></div>
@@ -410,10 +428,9 @@ const FleetManagement = () => {
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-2">
                         <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full ${
-                              vehicle.fuelLevel > 50 ? 'bg-green-500' : vehicle.fuelLevel > 25 ? 'bg-yellow-500' : 'bg-red-500'
-                            }`}
+                          <div
+                            className={`h-full rounded-full ${vehicle.fuelLevel > 50 ? 'bg-green-500' : vehicle.fuelLevel > 25 ? 'bg-yellow-500' : 'bg-red-500'
+                              }`}
                             style={{ width: `${vehicle.fuelLevel}%` }}
                           ></div>
                         </div>
@@ -422,7 +439,7 @@ const FleetManagement = () => {
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center justify-end space-x-2">
-                        <button 
+                        <button
                           onClick={() => {
                             setSelectedVehicle(vehicle);
                             setShowAssignModal(true);
@@ -432,9 +449,9 @@ const FleetManagement = () => {
                         >
                           🛣️
                         </button>
-                        <button 
+                        <button
                           onClick={() => {
-                            setSelectedVehicle({...vehicle});
+                            setSelectedVehicle({ ...vehicle });
                             setShowEditModal(true);
                           }}
                           className="p-2 hover:bg-blue-50 rounded-lg transition text-blue-600"
@@ -442,7 +459,7 @@ const FleetManagement = () => {
                         >
                           ✏️
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteVehicle(vehicle.id)}
                           className="p-2 hover:bg-red-50 rounded-lg transition text-red-600"
                           title="Delete Vehicle"
@@ -465,7 +482,7 @@ const FleetManagement = () => {
           {/* Route Header */}
           <div className="flex justify-between items-center mb-6">
             <div className="text-sm text-slate-500">
-              Total Routes: <span className="font-semibold text-slate-800">{routes.length}</span> | 
+              Total Routes: <span className="font-semibold text-slate-800">{routes.length}</span> |
               Active: <span className="font-semibold text-green-600">{routes.filter(r => r.status === 'Active').length}</span>
             </div>
             <button
@@ -479,11 +496,10 @@ const FleetManagement = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {routes.map((route) => (
               <div key={route.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition">
-                <div className={`h-2 bg-gradient-to-r ${
-                  route.vehicleType === 'Bus' ? 'from-teal-500 to-emerald-500' :
-                  route.vehicleType === 'Train' ? 'from-cyan-500 to-blue-500' :
-                  'from-amber-500 to-orange-500'
-                }`}></div>
+                <div className={`h-2 bg-gradient-to-r ${route.vehicleType === 'Bus' ? 'from-teal-500 to-emerald-500' :
+                    route.vehicleType === 'Train' ? 'from-cyan-500 to-blue-500' :
+                      'from-amber-500 to-orange-500'
+                  }`}></div>
                 <div className="p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
@@ -494,11 +510,10 @@ const FleetManagement = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                        route.status === 'Active' 
+                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${route.status === 'Active'
                           ? 'bg-green-100 text-green-700'
                           : 'bg-slate-100 text-slate-600'
-                      }`}>
+                        }`}>
                         {route.status || 'Active'}
                       </span>
                     </div>
@@ -538,9 +553,9 @@ const FleetManagement = () => {
                     </div>
                     {/* Route Actions */}
                     <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
-                      <button 
+                      <button
                         onClick={() => {
-                          setSelectedRoute({...route});
+                          setSelectedRoute({ ...route });
                           setShowEditRouteModal(true);
                         }}
                         className="p-2 hover:bg-blue-50 rounded-lg transition text-blue-600"
@@ -548,7 +563,7 @@ const FleetManagement = () => {
                       >
                         ✏️
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeleteRoute(route.id)}
                         className="p-2 hover:bg-red-50 rounded-lg transition text-red-600"
                         title="Delete Route"
@@ -645,24 +660,22 @@ const FleetManagement = () => {
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                        schedule.status === 'Active' ? 'bg-green-100 text-green-700' :
-                        schedule.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-slate-100 text-slate-600'
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                          schedule.status === 'Active' ? 'bg-green-500' :
-                          schedule.status === 'Pending' ? 'bg-yellow-500' :
-                          'bg-slate-400'
-                        }`}></span>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${schedule.status === 'Active' ? 'bg-green-100 text-green-700' :
+                          schedule.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-slate-100 text-slate-600'
+                        }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${schedule.status === 'Active' ? 'bg-green-500' :
+                            schedule.status === 'Pending' ? 'bg-yellow-500' :
+                              'bg-slate-400'
+                          }`}></span>
                         {schedule.status}
                       </span>
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center justify-end space-x-2">
-                        <button 
+                        <button
                           onClick={() => {
-                            setSelectedSchedule({...schedule});
+                            setSelectedSchedule({ ...schedule });
                             setShowEditScheduleModal(true);
                           }}
                           className="p-2 hover:bg-blue-50 rounded-lg transition text-blue-600"
@@ -670,7 +683,7 @@ const FleetManagement = () => {
                         >
                           ✏️
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteSchedule(schedule.id)}
                           className="p-2 hover:bg-red-50 rounded-lg transition text-red-600"
                           title="Delete Schedule"
@@ -895,11 +908,10 @@ const FleetManagement = () => {
                   <div
                     key={route.id}
                     onClick={() => setSelectedRoute(route)}
-                    className={`p-3 border rounded-lg cursor-pointer transition ${
-                      selectedRoute?.id === route.id
+                    className={`p-3 border rounded-lg cursor-pointer transition ${selectedRoute?.id === route.id
                         ? 'border-teal-500 bg-teal-50'
                         : 'border-slate-200 hover:border-slate-300'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -924,11 +936,10 @@ const FleetManagement = () => {
               <button
                 onClick={handleAssignVehicle}
                 disabled={!selectedRoute}
-                className={`flex-1 px-4 py-2 rounded-lg transition ${
-                  selectedRoute
+                className={`flex-1 px-4 py-2 rounded-lg transition ${selectedRoute
                     ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white hover:opacity-90'
                     : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                }`}
+                  }`}
               >
                 Assign Vehicle
               </button>
@@ -1252,11 +1263,10 @@ const FleetManagement = () => {
                         : [...newSchedule.days, day];
                       setNewSchedule({ ...newSchedule, days });
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                      newSchedule.days.includes(day)
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${newSchedule.days.includes(day)
                         ? 'bg-amber-500 text-white'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
+                      }`}
                   >
                     {day}
                   </button>
@@ -1379,11 +1389,10 @@ const FleetManagement = () => {
                         : [...(selectedSchedule.days || []), day];
                       setSelectedSchedule({ ...selectedSchedule, days });
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                      selectedSchedule.days?.includes(day)
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${selectedSchedule.days?.includes(day)
                         ? 'bg-amber-500 text-white'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
+                      }`}
                   >
                     {day}
                   </button>
