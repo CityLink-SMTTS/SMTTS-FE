@@ -224,7 +224,7 @@ export const NotificationProvider = ({ children }) => {
         const newNotification = {
             id,
             type: 'info',
-            duration: 5000,
+            duration: 3000, // 3 seconds auto-dismiss
             ...notification
         };
 
