@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import logo from '../../assets/SMTTS_Logo_High_Resolution.png';
 
 const Sidebar = ({ isOpen, onClose }) => {
     const location = useLocation();
@@ -59,16 +60,24 @@ const Sidebar = ({ isOpen, onClose }) => {
                 {/* Logo Section */}
                 <div className="h-16 flex items-center justify-between px-4 border-b border-white/10">
                     {!collapsed && (
-                        <div className="flex items-center space-x-2">
-                            <div className="w-9 h-9 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 flex items-center justify-center shadow-lg">
-                                <span className="text-xl">🚍</span>
-                            </div>
-                            <span className="font-bold text-lg bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">SMTTS</span>
+                        <div className="flex items-center space-x-3">
+                            <img
+                                src={logo}
+                                alt="SMTTS Logo"
+                                className="w-10 h-10 rounded-lg shadow-lg object-cover border-2 border-white/10"
+                            />
+                            <span className="font-bold text-lg bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">
+                                SMTTS
+                            </span>
                         </div>
                     )}
                     {collapsed && (
-                        <div className="w-9 h-9 mx-auto rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 flex items-center justify-center shadow-lg">
-                            <span className="text-xl">🚍</span>
+                        <div className="flex justify-center w-full">
+                            <img
+                                src={logo}
+                                alt="SMTTS Logo"
+                                className="w-10 h-10 rounded-lg shadow-lg object-cover border-2 border-white/10"
+                            />
                         </div>
                     )}
                     <button
