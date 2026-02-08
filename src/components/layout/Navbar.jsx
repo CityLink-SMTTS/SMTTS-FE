@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { mockAlerts } from '../../utils/mockData';
 
@@ -6,6 +6,24 @@ const Navbar = ({ onMenuClick, sidebarCollapsed }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const notificationRef = useRef(null);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setShowProfile(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <header className={`
@@ -32,7 +50,7 @@ const Navbar = ({ onMenuClick, sidebarCollapsed }) => {
         <div className="flex items-center space-x-3">
 
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative" ref={notificationRef}>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative p-2 hover:bg-slate-100 rounded-xl transition"
@@ -78,7 +96,7 @@ const Navbar = ({ onMenuClick, sidebarCollapsed }) => {
           </div>
 
           {/* Profile Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={profileRef}>
             <button
               onClick={() => setShowProfile(!showProfile)}
               className="flex items-center space-x-3 px-3 py-2 hover:bg-slate-50 rounded-xl transition group"
