@@ -224,18 +224,20 @@ export const NotificationProvider = ({ children }) => {
         const newNotification = {
             id,
             type: 'info',
-            duration: 3000, // 3 seconds auto-dismiss
-            ...notification
+            ...notification,
+            duration: 3000 // Always 3 seconds auto-dismiss
         };
 
-        setNotifications((prev) => [...prev, newNotification]);
+        setNotifications((prev) => {
+            // Limit to maximum 3 notifications - remove oldest if at limit
+            const updated = prev.length >= 3 ? prev.slice(1) : prev;
+            return [...updated, newNotification];
+        });
 
-        // Auto remove after duration
-        if (newNotification.duration) {
-            setTimeout(() => {
-                removeNotification(id);
-            }, newNotification.duration);
-        }
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            removeNotification(id);
+        }, 3000);
 
         return id;
     }, []);
@@ -261,8 +263,7 @@ export const NotificationProvider = ({ children }) => {
         addNotification({
             type: 'info',
             message,
-            title,
-            duration: null // Persistent
+            title
         });
     }, [addNotification]);
 
