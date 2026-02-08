@@ -10,6 +10,7 @@ const UserManagement = () => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
@@ -32,18 +33,47 @@ const UserManagement = () => {
   const drivers = users.filter(u => u.role === 'Driver').length;
   const admins = users.filter(u => u.role === 'Admin').length;
 
-  const handleAddUser = (e) => {
+  const handleSaveUser = (e) => {
     e.preventDefault();
-    const user = {
-      id: users.length + 1,
-      ...newUser,
-      joinDate: new Date().toISOString().split('T')[0],
-      lastActive: 'Just now'
-    };
-    setUsers([...users, user]);
-    setShowAddModal(false);
+
+    if (editingId) {
+      setUsers(users.map(u => u.id === editingId ? { ...u, ...newUser } : u));
+      notify.success(`User "${newUser.name}" has been updated successfully`, 'User Updated');
+    } else {
+      const user = {
+        id: Math.max(...users.map(u => u.id), 0) + 1,
+        ...newUser,
+        joinDate: new Date().toISOString().split('T')[0],
+        lastActive: 'Just now'
+      };
+      setUsers([...users, user]);
+      notify.success(`User "${newUser.name}" has been added successfully`, 'User Added');
+    }
+    closeModal();
+  };
+
+  const openAddModal = () => {
+    setEditingId(null);
     setNewUser({ name: '', email: '', role: 'Commuter', status: 'Active' });
-    notify.success(`User "${newUser.name}" has been added successfully`, 'User Added');
+    setShowAddModal(true);
+  };
+
+  const openEditModal = (user) => {
+    setEditingId(user.id);
+    setNewUser({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status
+    });
+    setShowAddModal(true);
+    setSelectedUser(null);
+  };
+
+  const closeModal = () => {
+    setShowAddModal(false);
+    setEditingId(null);
+    setNewUser({ name: '', email: '', role: 'Commuter', status: 'Active' });
   };
 
   const handleDeleteUser = async (id) => {
@@ -82,7 +112,7 @@ const UserManagement = () => {
           <p className="text-gray-500 mt-1">Manage all system users, drivers, and administrators</p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={openAddModal}
           className="mt-4 md:mt-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center space-x-2"
         >
           <span>+</span>
@@ -164,8 +194,8 @@ const UserManagement = () => {
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${user.role === 'Admin' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
-                          user.role === 'Driver' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
-                            'bg-gradient-to-r from-green-500 to-emerald-500'
+                        user.role === 'Driver' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                          'bg-gradient-to-r from-green-500 to-emerald-500'
                         }`}>
                         {user.name.charAt(0)}
                       </div>
@@ -177,8 +207,8 @@ const UserManagement = () => {
                   </td>
                   <td className="py-4 px-6">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === 'Admin' ? 'bg-purple-100 text-purple-800' :
-                        user.role === 'Driver' ? 'bg-blue-100 text-blue-800' :
-                          'bg-green-100 text-green-800'
+                      user.role === 'Driver' ? 'bg-blue-100 text-blue-800' :
+                        'bg-green-100 text-green-800'
                       }`}>
                       {user.role === 'Admin' && '👑 '}
                       {user.role === 'Driver' && '🚗 '}
@@ -190,8 +220,8 @@ const UserManagement = () => {
                     <button
                       onClick={() => handleToggleStatus(user.id)}
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-pointer transition ${user.status === 'Active'
-                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                          : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                        ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                         }`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${user.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'
@@ -217,6 +247,7 @@ const UserManagement = () => {
                         👁️
                       </button>
                       <button
+                        onClick={() => openEditModal(user)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-500 hover:text-green-600"
                         title="Edit User"
                       >
@@ -260,15 +291,15 @@ const UserManagement = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-800">Add New User</h3>
+              <h3 className="text-lg font-semibold text-gray-800">{editingId ? 'Edit User' : 'Add New User'}</h3>
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={closeModal}
                 className="text-gray-400 hover:text-gray-600"
               >
                 ✕
               </button>
             </div>
-            <form onSubmit={handleAddUser} className="p-6 space-y-4">
+            <form onSubmit={handleSaveUser} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                 <input
@@ -317,7 +348,7 @@ const UserManagement = () => {
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
+                  onClick={closeModal}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
                 >
                   Cancel
@@ -326,7 +357,7 @@ const UserManagement = () => {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
-                  Add User
+                  {editingId ? 'Save Changes' : 'Add User'}
                 </button>
               </div>
             </form>
@@ -350,8 +381,8 @@ const UserManagement = () => {
             <div className="p-6">
               <div className="flex items-center space-x-4 mb-6">
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold ${selectedUser.role === 'Admin' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
-                    selectedUser.role === 'Driver' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
-                      'bg-gradient-to-r from-green-500 to-emerald-500'
+                  selectedUser.role === 'Driver' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                    'bg-gradient-to-r from-green-500 to-emerald-500'
                   }`}>
                   {selectedUser.name.charAt(0)}
                 </div>
@@ -367,7 +398,10 @@ const UserManagement = () => {
                 <DetailRow label="Last Active" value={selectedUser.lastActive} />
               </div>
               <div className="mt-6 pt-4 border-t flex space-x-3">
-                <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                <button
+                  onClick={() => openEditModal(selectedUser)}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
                   Edit User
                 </button>
                 <button
